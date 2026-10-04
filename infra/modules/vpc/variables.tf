@@ -29,3 +29,9 @@ variable "private_subnet_cidrs" {
   description = "CIDR blocks for private subnets — one per AZ"
   type        = list(string)
 }
+
+variable "single_nat_gateway" {
+  description = "Use a single NAT gateway for all AZs. Cost-optimized for staging. Set false for production HA."
+  type        = bool
+  default     = false
+}

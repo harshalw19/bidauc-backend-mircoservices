@@ -62,3 +62,9 @@ variable "eks_node_desired_size" {
   description = "Desired number of EKS worker nodes"
   type        = number
 }
+
+variable "single_nat_gateway" {
+  description = "Use a single NAT gateway to reduce cost in non-production environments"
+  type        = bool
+  default     = true
+}

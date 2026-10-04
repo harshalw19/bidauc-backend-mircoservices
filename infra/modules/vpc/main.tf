@@ -58,7 +58,7 @@ resource "aws_subnet" "private" {
 # ─── ELASTIC IP FOR NAT GATEWAY ──────────────────────────────────────────────
 
 resource "aws_eip" "nat" {
-  count  = length(var.availability_zones)
+  count  = var.single_nat_gateway ? 1 : length(var.availability_zones)
   domain = "vpc"
 
   tags = {
@@ -68,16 +68,16 @@ resource "aws_eip" "nat" {
   depends_on = [aws_internet_gateway.main]
 }
 
-# ─── NAT GATEWAY (one per AZ) ────────────────────────────────────────────────
+# ─── NAT GATEWAY ─────────────────────────────────────────────────────────────
 
 resource "aws_nat_gateway" "main" {
-  count = length(var.availability_zones)
+  count = var.single_nat_gateway ? 1 : length(var.availability_zones)
 
   allocation_id = aws_eip.nat[count.index].id
   subnet_id     = aws_subnet.public[count.index].id
 
   tags = {
-    Name = "${var.project}-${var.environment}-nat-${var.availability_zones[count.index]}"
+    Name = "${var.project}-${var.environment}-nat-${count.index + 1}"
   }
 
   depends_on = [aws_internet_gateway.main]
@@ -105,7 +105,7 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
-# ─── PRIVATE ROUTE TABLES (one per AZ) ───────────────────────────────────────
+# ─── PRIVATE ROUTE TABLES ─────────────────────────────────────────────────────
 
 resource "aws_route_table" "private" {
   count  = length(var.availability_zones)
@@ -113,7 +113,7 @@ resource "aws_route_table" "private" {
 
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.main[count.index].id
+    nat_gateway_id = var.single_nat_gateway ? aws_nat_gateway.main[0].id : aws_nat_gateway.main[count.index].id
   }
 
   tags = {
