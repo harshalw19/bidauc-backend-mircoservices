@@ -1,0 +1,3 @@
+# Exclude application code from language statistics
+services/** linguist-vendored
+# backend/** linguist-vendored
